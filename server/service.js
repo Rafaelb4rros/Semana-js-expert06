@@ -14,9 +14,9 @@ export class Service {
 
   async getFileInfo(file) {
     const fullFilePath = join(publicDirectory, file);
+
     await fsPromises.access(fullFilePath);
     const fileType = extname(fullFilePath);
-
     return {
       type: fileType,
       name: fullFilePath,
