@@ -4,6 +4,7 @@ import { Controller } from "../../../server/controller.js";
 import { handler } from "../../../server/routes.js";
 import TestUtil from "../utils/test.util.js";
 import events from "events";
+
 const {
   pages,
   location,
@@ -135,24 +136,24 @@ describe("#Routes - test suite for api response", () => {
 
   test("POST /controller - given an existent command, it should returns a response with the result", async () => {
     const params = TestUtil.defaultHandleParams();
-    const command = JSON.stringify({ command: "start" });
-    const expectedResult = JSON.stringify({
+    const command = { command: "start" };
+    const expectedResult = {
       result: "ok",
-    });
+    };
 
+    params.req.push(JSON.stringify(command));
     params.req.method = "POST";
     params.req.url = "/controller";
-    params.req.body = command;
 
     const handleCommand = jest
       .spyOn(Controller.prototype, Controller.prototype.handleCommand.name)
-      .mockResolvedValue({
-        result: expectedResult,
-      });
+      .mockResolvedValue(expectedResult);
 
     await handler(...params.values());
-    expect(handleCommand).toHaveBeenCalledWith(JSON.parse(command));
-    expect(params.res.end).toHaveBeenCalledTimes(1);
+
+    expect(handleCommand);
+    expect(handleCommand).toHaveBeenCalledWith(command);
+    expect(params.res.end).toHaveBeenCalledWith(JSON.stringify(expectedResult));
   });
 
   test(`GET /stream - this should return the audio stream`, async () => {
@@ -160,16 +161,18 @@ describe("#Routes - test suite for api response", () => {
     const mockClientStream = TestUtil.generateReadableStream(["file"]);
     params.req.method = "GET";
     params.req.url = "/stream?id=12345";
-
+    const onClose = jest.fn();
     jest.spyOn(mockClientStream, "pipe").mockReturnValue();
+
     const createClientStream = jest
       .spyOn(Controller.prototype, Controller.prototype.createClientStream.name)
       .mockReturnValue({
-        onClose: jest.fn(),
+        onClose,
         stream: mockClientStream,
       });
 
     await handler(...params.values());
+    params.req.emit("close");
 
     expect(params.res.writeHead).toHaveBeenCalledWith(STATUS_CODE["SUCCESS"], {
       "Content-Type": "audio/mpeg",
@@ -177,6 +180,7 @@ describe("#Routes - test suite for api response", () => {
     });
     expect(createClientStream).toHaveBeenCalled();
     expect(mockClientStream.pipe).toHaveBeenCalledWith(params.res);
+    expect(onClose).toHaveBeenCalled();
   });
 
   describe("exceptions", () => {
