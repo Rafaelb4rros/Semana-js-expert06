@@ -2,7 +2,7 @@ import { jest, beforeEach, expect, describe, test } from "@jest/globals";
 import { Controller } from "../../../server/controller";
 import { Service } from "../../../server/service";
 import config from "../../../server/config.js";
-import TestUtil from "../utils/test.util";
+import TestUtil from "../utils/test.util.js";
 import { extname } from "path";
 const {
   pages: { homeHTML },
