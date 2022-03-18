@@ -3,11 +3,11 @@ import config from "../../../server/config.js";
 import { Controller } from "../../../server/controller.js";
 import { handler } from "../../../server/routes.js";
 import TestUtil from "../utils/test.util.js";
-
+import events from "events";
 const {
   pages,
   location,
-  constants: { CONTENT_TYPE },
+  constants: { CONTENT_TYPE, STATUS_CODE },
 } = config;
 
 describe("#Routes - test suite for api response", () => {
@@ -21,7 +21,7 @@ describe("#Routes - test suite for api response", () => {
     params.req.method = "GET";
     params.req.url = "/";
     await handler(...params.values());
-    expect(params.res.writeHead).toBeCalledWith(302, {
+    expect(params.res.writeHead).toBeCalledWith(STATUS_CODE["REDIRECT"], {
       Location: location.home,
     });
     expect(params.res.end).toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe("#Routes - test suite for api response", () => {
     expect(Controller.prototype.getFileStream).toHaveBeenCalledWith(
       params.req.url
     );
-    expect(params.res.writeHead).toHaveBeenCalledWith(200, {
+    expect(params.res.writeHead).toHaveBeenCalledWith(STATUS_CODE["SUCCESS"], {
       "Content-Type": CONTENT_TYPE[expectedType],
     });
 
@@ -129,8 +129,54 @@ describe("#Routes - test suite for api response", () => {
     params.req.method = "POST";
     params.req.url = "/unknown";
     await handler(...params.values());
-    expect(params.res.writeHead).toHaveBeenCalledWith(404);
+    expect(params.res.writeHead).toHaveBeenCalledWith(STATUS_CODE["NOT_FOUND"]);
     expect(params.res.end).toHaveBeenCalled();
+  });
+
+  test("POST /controller - given an existent command, it should returns a response with the result", async () => {
+    const params = TestUtil.defaultHandleParams();
+    const command = JSON.stringify({ command: "start" });
+    const expectedResult = JSON.stringify({
+      result: "ok",
+    });
+
+    params.req.method = "POST";
+    params.req.url = "/controller";
+    params.req.body = command;
+
+    const handleCommand = jest
+      .spyOn(Controller.prototype, Controller.prototype.handleCommand.name)
+      .mockResolvedValue({
+        result: expectedResult,
+      });
+
+    await handler(...params.values());
+    expect(handleCommand).toHaveBeenCalledWith(JSON.parse(command));
+    expect(params.res.end).toHaveBeenCalledTimes(1);
+  });
+
+  test(`GET /stream - this should return the audio stream`, async () => {
+    const params = TestUtil.defaultHandleParams();
+    const mockClientStream = TestUtil.generateReadableStream(["file"]);
+    params.req.method = "GET";
+    params.req.url = "/stream?id=12345";
+
+    jest.spyOn(mockClientStream, "pipe").mockReturnValue();
+    const createClientStream = jest
+      .spyOn(Controller.prototype, Controller.prototype.createClientStream.name)
+      .mockReturnValue({
+        onClose: jest.fn(),
+        stream: mockClientStream,
+      });
+
+    await handler(...params.values());
+
+    expect(params.res.writeHead).toHaveBeenCalledWith(STATUS_CODE["SUCCESS"], {
+      "Content-Type": "audio/mpeg",
+      "Accept-Ranges": "bytes",
+    });
+    expect(createClientStream).toHaveBeenCalled();
+    expect(mockClientStream.pipe).toHaveBeenCalledWith(params.res);
   });
 
   describe("exceptions", () => {
@@ -156,7 +202,9 @@ describe("#Routes - test suite for api response", () => {
 
       await handler(...params.values());
 
-      expect(params.res.writeHead).toHaveBeenCalledWith(500);
+      expect(params.res.writeHead).toHaveBeenCalledWith(
+        STATUS_CODE["INTERNAL_SERVER_ERROR"]
+      );
       expect(params.res.end).toHaveBeenCalled();
     });
   });

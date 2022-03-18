@@ -65,6 +65,7 @@ describe("API E2E Suite Test", () => {
       server.kill();
       expect(onChunk).not.toHaveBeenCalled();
     });
+
     test("it should receive data if the process is playing", async () => {
       const server = await getTestServer();
       const onChunk = jest.fn();
@@ -80,5 +81,7 @@ describe("API E2E Suite Test", () => {
       expect(buffer.length).toBeGreaterThan(1000);
       server.kill();
     });
+
+    test.todo("GET / it should redirect to /home and receive status 304");
   });
 });

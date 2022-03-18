@@ -10,6 +10,7 @@
     "start": "node server/index.js",
     "live-reload": "nodemon server/index.js",
     "test": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache",
+    "test:log": "NODE_OPTIONS=--experimental-vm-modules jest --no-cache",
     "test:watch": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache --watchAll",
     "test:coverage": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache --coverage tests/unit",
     "test:e2e": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache tests/e2e",
@@ -28,6 +29,7 @@
     "supertest": "6.2.2"
   },
   "dependencies": {
+    "global": "^4.4.0",
     "pino": "7.8.0",
     "pino-pretty": "7.5.3",
     "throttle": "1.0.3"

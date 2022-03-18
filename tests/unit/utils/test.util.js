@@ -24,14 +24,15 @@ export default class TestUtil {
 
   static defaultHandleParams() {
     const requestStream = TestUtil.generateReadableStream(["req body"]);
-    const response = TestUtil.generateWritableStream(() => {});
+    const responseStream = TestUtil.generateWritableStream(() => {});
     const data = {
       req: Object.assign(requestStream, {
         headers: {},
         method: "",
         url: "",
+        body: "",
       }),
-      res: Object.assign(response, {
+      res: Object.assign(responseStream, {
         writeHead: jest.fn(),
         end: jest.fn(),
       }),

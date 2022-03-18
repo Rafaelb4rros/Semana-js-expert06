@@ -5,7 +5,7 @@ import { logger } from "./util.js";
 const {
   location,
   pages: { homeHTML, controllerHTML },
-  constants: { CONTENT_TYPE },
+  constants: { CONTENT_TYPE, STATUS_CODE },
 } = config;
 const controller = new Controller();
 import { once } from "events";
@@ -14,7 +14,7 @@ const routes = async (req, res) => {
   const { method, url } = req;
 
   if (method === "GET" && url === "/") {
-    res.writeHead(302, {
+    res.writeHead(STATUS_CODE["REDIRECT"], {
       Location: location.home,
     });
     return res.end();
@@ -40,12 +40,10 @@ const routes = async (req, res) => {
   if (method === "GET" && url.includes("/stream")) {
     const { onClose, stream } = controller.createClientStream();
     req.once("close", onClose);
-
-    res.writeHead(200, {
+    res.writeHead(STATUS_CODE["SUCCESS"], {
       "Content-Type": "audio/mpeg",
       "Accept-Ranges": "bytes",
     });
-
     return stream.pipe(res);
   }
 
@@ -54,7 +52,7 @@ const routes = async (req, res) => {
     const contentType = CONTENT_TYPE[type];
 
     if (contentType) {
-      res.writeHead(200, {
+      res.writeHead(STATUS_CODE["SUCCESS"], {
         "Content-Type": contentType,
       });
     }
@@ -62,19 +60,19 @@ const routes = async (req, res) => {
     return stream.pipe(res);
   }
 
-  res.writeHead(404);
+  res.writeHead(STATUS_CODE["NOT_FOUND"]);
   return res.end();
 };
 
 const handleError = async (error, res) => {
   if (error.message.includes("ENOENT")) {
     logger.warn(`asset not found ${error.stack}`);
-    res.writeHead(404);
+    res.writeHead(STATUS_CODE["NOT_FOUND"]);
     return res.end();
   }
 
   logger.error(`caught error on API ${error.stack}`);
-  res.writeHead(500);
+  res.writeHead(STATUS_CODE["INTERNAL_SERVER_ERROR"]);
   return res.end();
 };
 
