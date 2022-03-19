@@ -65,7 +65,7 @@ export class Service {
     }
   }
 
-  breadCast() {
+  broadCast() {
     return new Writable({
       write: (chunk, enc, cb) => {
         for (const [id, stream] of this.clientStreams) {
@@ -90,7 +90,7 @@ export class Service {
     return streamsPromises.pipeline(
       songReadable,
       throttleTransform,
-      this.breadCast()
+      this.broadCast()
     );
   }
   stopStreaming() {

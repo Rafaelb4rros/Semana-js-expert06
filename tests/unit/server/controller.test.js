@@ -34,6 +34,7 @@ describe("#Controller - test suite for controller", () => {
     expect(stream).toStrictEqual(mockFileStream);
     expect(type).toStrictEqual(filetype);
   });
+
   test("handleCommand - given the start command it should call service method", async () => {
     const controller = new Controller();
     const command = {
@@ -51,6 +52,21 @@ describe("#Controller - test suite for controller", () => {
     expect(result).toStrictEqual(expectedResult);
     expect(startStreaming).toHaveBeenCalled();
   });
+
+  test("handleCommand - given an inexistent command it should returns response", async () => {
+    const controller = new Controller();
+
+    const command = {
+      command: "command",
+    };
+
+    const expectedResult = {
+      result: "ok",
+    };
+    const result = await controller.handleCommand(command);
+    expect(result).toStrictEqual(expectedResult);
+  });
+
   test("handleCommand - given the stop command it should call service method", async () => {
     const controller = new Controller();
     const command = {

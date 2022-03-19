@@ -9,14 +9,14 @@
   "scripts": {
     "start": "node server/index.js",
     "live-reload": "nodemon server/index.js",
-    "test": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache",
-    "test:log": "NODE_OPTIONS=--experimental-vm-modules jest --no-cache",
+    "test": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache --detectOpenHandles --force-exit",
+    "test:log": "NODE_OPTIONS=--experimental-vm-modules jest --no-cache --detectOpenHandles --force-exit",
     "test:watch": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache --watchAll",
     "test:coverage": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache --coverage tests/unit",
-    "test:e2e": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache tests/e2e",
+    "test:e2e": "LOG_DISABLED=true NODE_OPTIONS=--experimental-vm-modules jest --no-cache tests/e2e --detectOpenHandles --force-exit",
     "live-reload:docker": "docker-compose up --build live-reload",
     "test:coverage:docker": "docker-compose up --build test-coverage",
-    "test:docker": "docker-compose up --build test",
+    "test:docker": "docker-compose up --build test --detectOpenHandles --force-exit",
     "test:watch:docker": "docker-compose up --build test-watch"
   },
   "engines": {
