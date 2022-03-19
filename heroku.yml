@@ -4,5 +4,5 @@ build:
   config:
     PORT: 3333
 
-  run:
-    start: yarn start
+run:
+  web: yarn start
