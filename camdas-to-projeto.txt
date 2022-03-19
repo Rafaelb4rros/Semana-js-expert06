@@ -1,0 +1,13 @@
+Server
+  service - regras de negocio e processamentos
+  controller - intermediar entre a camada de apresentacao (routes) e a camada de negocio (service)
+  routes - camada de apresentacao
+  server - reponsavel por criar o servidor
+  index - instancia o servidor e expoe para a web
+  config - configuracoes estaticas do projeto
+
+Client -
+  service - regras de negocio e processamentos
+  controller - intermediar entre a camada de apresentacao (view) e a camada de negocio (service)
+  view -  camada de apresentacao (HTML)
+  index - quem inicia o tudo

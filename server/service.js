@@ -9,10 +9,18 @@ import childProcess from "child_process";
 import { logger } from "./util.js";
 import streamsPromises from "stream/promises";
 import { once } from "events";
+import path from "path";
 
 const {
-  dir: { publicDirectory },
-  constants: { fallbackBitRate, englishConversation, bitRateDivisor },
+  dir: { publicDirectory, fxDirectory },
+  constants: {
+    fallbackBitRate,
+    englishConversation,
+    bitRateDivisor,
+    audioMediaType,
+    songVolume,
+    fxVolume,
+  },
 } = config;
 
 export class Service {
@@ -79,6 +87,7 @@ export class Service {
       },
     });
   }
+
   async startStreaming() {
     logger.info(`starting with ${this.currentSong}`);
     const bitRate = (this.currentBitRate =
@@ -93,9 +102,11 @@ export class Service {
       this.broadCast()
     );
   }
+
   stopStreaming() {
     this.throttleTransform?.end?.();
   }
+
   createFileStream(filename) {
     return fs.createReadStream(filename);
   }
@@ -117,5 +128,66 @@ export class Service {
       stream: this.createFileStream(name),
       type,
     };
+  }
+
+  async readFxByName(fxName) {
+    const songs = await fsPromises.readdir(fxDirectory);
+
+    const chosenSong = songs.find((filename) =>
+      filename.toLowerCase().includes(fxName)
+    );
+
+    if (!chosenSong) return Promise.reject(`song ${fxName} does note exists`);
+    return path.join(fxDirectory, chosenSong);
+  }
+
+  appendFxStream(fx) {
+    const throttleTransformable = Throttle(this.currentBitRate);
+
+    streamsPromises.pipeline(throttleTransformable, this.broadCast());
+
+    const unpipe = () => {
+      const transformStream = this.mergeAudioStreams(fx, this.currentReadable);
+
+      this.throttleTransform = throttleTransformable;
+
+      this.currentReadable = transformStream;
+
+      this.currentReadable.removeListener("unpipe", unpipe);
+
+      streamsPromises.pipeline(transformStream, throttleTransformable);
+    };
+
+    this.throttleTransform.on("unpipe", unpipe);
+    this.throttleTransform.pause();
+    this.currentReadable.unpipe(this.throttleTransform);
+  }
+
+  mergeAudioStreams(song, readable) {
+    const transformStream = new PassThrough();
+
+    const args = [
+      "-t",
+      audioMediaType,
+      "-v",
+      songVolume,
+      "-m",
+      "-",
+      "-t",
+      audioMediaType,
+      "-v",
+      fxVolume,
+      song,
+      "-t",
+      audioMediaType,
+      "-",
+    ];
+
+    const { stdin, stdout } = this._executeSoxCommand(args);
+
+    streamsPromises.pipeline(readable, stdin);
+    streamsPromises.pipeline(stdout, transformStream);
+
+    return transformStream;
   }
 }

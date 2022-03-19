@@ -1,0 +1,8 @@
+build:
+  docker:
+    web: Dockerfile
+  config:
+    PORT: 3333
+
+  run:
+    start: yarn start

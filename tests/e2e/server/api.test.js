@@ -61,9 +61,9 @@ describe("API E2E Suite Test", () => {
 
   test("GET /unknown - it should respond with status 404", async () => {
     const res = await testServer.get(`/unknown`);
-
     expect(res.statusCode).toStrictEqual(STATUS_CODE["NOT_FOUND"]);
   });
+
   describe("static files", () => {
     test("GET - /file.js - it should respond with 404 if not exists", async () => {
       const file = "file.js";
